@@ -23,15 +23,20 @@
 	<body>
 		<div id="token">
 			<button @click="authorize()">Authorize</button>
-			<span>{{ token }}</span>
+			<div>
+				<h3> From the <a href="https://bluebutton.cms.gov/developers/">docs</a>:</h3>
+				<p>Log into account.mymedicare.gov using one of thirty thousand provided usernames and passwords. The first user is BBUser00000, with password PW00000!, and these sample users continue all the way to BBUser29999, with password PW29999!.</p>
+
+			</div>
 		</div>
 		<div id="demo">
 			<div v-if="token">
+				<span>{{ token }}</span>
 				<div v-for="resource in resources">
 					<button @click="fetchData(resource.type)">{{ resource.type }}</button>
 				</div>
 			</div>
-			<pre>
+			<pre v-if="token">
 {{ patient | pretty }}
 			</pre>
 		</div>
