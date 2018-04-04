@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<!-- development version, includes helpful console warnings -->
+		<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+		<style>
+			#demo {
+				font-family: 'Helvetica', Arial, sans-serif;
+			}
+			a {
+				text-decoration: none;
+				color: #f66;
+			}
+			li {
+				line-height: 1.5em;
+				margin-bottom: 20px;
+			}
+			.author, .date {
+				font-weight: bold;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="token">
+			<button @click="authorize()">Authorize</button>
+			<span>{{ token }}</span>
+		</div>
+		<div id="demo">
+			<div v-if="token">
+				<div v-for="resource in resources">
+					<button @click="fetchData(resource.type)">{{ resource.type }}</button>
+				</div>
+			</div>
+			<pre>
+{{ patient | pretty }}
+			</pre>
+		</div>
+		<script>
+var apiURL = 'https://sandbox.bluebutton.cms.gov/'
+
+var demo = new Vue({
+
+	el: '#demo',
+
+	data: {
+		token: null,
+		patient: null,
+		resources: [],
+	},
+
+	created: function () {
+		this.fetchToken()
+		this.fetchMetadata()
+	},
+
+	watch: {},
+
+	filters: {
+		truncate: function (v) {
+			var newline = v.indexOf('\n')
+			return newline > 0 ? v.slice(0, newline) : v
+		},
+		formatDate: function (v) {
+			return v.replace(/T|Z/g, ' ')
+		},
+		pretty: function(value) {
+			return JSON.stringify(value, "\n", 2);
+		},
+	},
+
+	methods: {
+		fetchToken: function () {
+			params = new URLSearchParams(window.location.hash.substr(1))
+			this.token = params.get("access_token")
+		},
+		fetchMetadata: async function() {
+			const response = await fetch(new URL("/v1/fhir/metadata", apiURL))
+			const responseBody = await response.json()
+			console.log(responseBody)
+			this.resources = responseBody.rest[0].resource
+		},
+		fetchData: async function(resource) {
+			auth = new Headers()
+			auth.set("Authorization", "Bearer " + this.token)
+			const response = await fetch(new URL("/v1/fhir/"+resource+"/", apiURL), {headers: auth})
+			const responseBody = await response.json()
+			console.log(responseBody)
+			this.patient = responseBody
+		},
+	}
+})
+
+var authorization = new Vue({
+
+	el: '#token',
+
+	data: {
+		token: null,
+	},
+
+	created: function () {
+		this.fetchToken()
+	},
+
+	methods: {
+		fetchToken: function () {
+			params = new URLSearchParams(window.location.hash.substr(1))
+			this.token = params.get("access_token")
+		},
+
+		authorize: function () {
+			qstring = (new URL(window.location.href)).searchParams
+			const clientID = qstring.get("id")
+			authURL = new URL("/v1/o/authorize/", apiURL)
+			authURL.searchParams.set("client_id", clientID)
+			authURL.searchParams.set("redirect_uri", window.location.href.replace(window.location.hash, ""))
+			authURL.searchParams.set("response_type", "token")
+			authURL.searchParams.set("state", "state")
+			window.location = authURL.href
+		}
+	}
+})
+		</script>
+	</body>
+</html>
