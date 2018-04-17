@@ -41,7 +41,8 @@
 			</pre>
 		</div>
 		<script>
-var apiURL = 'https://sandbox.bluebutton.cms.gov/'
+
+const apiURL = (new URL(window.location.href)).searchParams.get("api") || 'http://localhost:8000/'
 
 var demo = new Vue({
 
