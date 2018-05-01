@@ -42,7 +42,7 @@
 		</div>
 		<script>
 
-const apiURL = (new URL(window.location.href)).searchParams.get("api") || 'http://localhost:8000/'
+const apiURL = atob((new URL(window.location.href)).searchParams.get("api")) || 'http://localhost:8000/'
 
 var demo = new Vue({
 
